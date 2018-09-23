@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
 		std::cerr << "Usage:\n\t./server <port>" << std::endl;
 		return 1;
 	}
-	
+
 	Server server(argv[1]);
 
 	Game state;
@@ -28,7 +28,21 @@ int main(int argc, char **argv) {
 						return; //wait for more data
 					} else {
 						memcpy(&state.paddle.x, c->recv_buffer.data() + 1, sizeof(float));
+						// the update is coming from the first client
+						if(c == &server.connections.front()){
+							server.connections.back().send_raw("t", 1);
+							server.connections.back().send_raw(&state.paddle.x, sizeof(float));
+						}
+						else if (c == &server.connections.back()){
+							server.connections.front().send_raw("t", 1);
+							server.connections.front().send_raw(&state.paddle.x, sizeof(float));
+						}
+						else{
+							std::cout << "someone else send the message" << std::endl;
+						}
+
 						c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(float));
+						c->recv_buffer.clear();
 					}
 				}
 			}
@@ -39,6 +53,7 @@ int main(int argc, char **argv) {
 		if (now > then + std::chrono::seconds(1)) {
 			then = now;
 			std::cout << "Current paddle position: " << state.paddle.x << std::endl;
+
 		}
 	}
 }

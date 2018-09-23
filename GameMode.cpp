@@ -92,6 +92,7 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		state.paddle.x = (evt.motion.x - 0.5f * window_size.x) / (0.5f * window_size.x) * Game::FrameWidth;
 		state.paddle.x = std::max(state.paddle.x, -0.5f * Game::FrameWidth + 0.5f * Game::PaddleWidth);
 		state.paddle.x = std::min(state.paddle.x,  0.5f * Game::FrameWidth - 0.5f * Game::PaddleWidth);
+		mouse_event = true;
 	}
 
 	return false;
@@ -100,7 +101,8 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void GameMode::update(float elapsed) {
 	state.update(elapsed);
 
-	if (client.connection) {
+	// if (client.connection) {
+	if (mouse_event) {
 		//send game state to server:
 		client.connection.send_raw("s", 1);
 		client.connection.send_raw(&state.paddle.x, sizeof(float));
@@ -112,6 +114,14 @@ void GameMode::update(float elapsed) {
 		} else if (event == Connection::OnClose) {
 			std::cerr << "Lost connection to server." << std::endl;
 		} else { assert(event == Connection::OnRecv);
+			if (c->recv_buffer[0] == 't') {
+				if (c->recv_buffer.size() < 1 + sizeof(float)) {
+					return; //wait for more data
+				} else {
+					memcpy(&state.paddle.x, c->recv_buffer.data() + 1, sizeof(float));
+					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(float));
+				}
+			}
 			std::cerr << "Ignoring " << c->recv_buffer.size() << " bytes from server." << std::endl;
 			c->recv_buffer.clear();
 		}
