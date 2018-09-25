@@ -63,28 +63,13 @@ Load< Scene > scene(LoadTagDefault, [](){
 			obj->program_mv_mat4x3 = vertex_color_program->object_to_light_mat4x3;
 			obj->program_itmv_mat3 = vertex_color_program->normal_to_light_mat3;
 
-			MeshBuffer::Mesh const &mesh = meshes->lookup(m);
-			obj->vao = *meshes_for_vertex_color_program;
-			obj->start = mesh.start;
-			obj->count = mesh.count;
+			// MeshBuffer::Mesh const &mesh = meshes->lookup(m);
+			// obj->vao = *meshes_for_vertex_color_program;
+			// obj->start = mesh.start;
+			// obj->count = mesh.count;
 		}
 	});
 
-	//look up paddle and ball transforms:
-	// for (Scene::Transform *t = ret->first_transform; t != nullptr; t = t->alloc_next) {
-	// 	if (t->name == "Paddle") {
-	// 		if (paddle_transform) throw std::runtime_error("Multiple 'Paddle' transforms in scene.");
-	// 		paddle_transform = t;
-	// 	}
-	// 	if (t->name == "Ball") {
-	// 		if (ball_transform) throw std::runtime_error("Multiple 'Ball' transforms in scene.");
-	// 		ball_transform = t;
-	// 	}
-	//
-	// }
-	// if (!paddle_transform) throw std::runtime_error("No 'Paddle' transform in scene.");
-	// if (!ball_transform) throw std::runtime_error("No 'Ball' transform in scene.");
-	// look up the camera:
 	for (Scene::Camera *c = ret->first_camera; c != nullptr; c = c->alloc_next) {
 		if (c->transform->name == "Camera") {
 			if (camera) throw std::runtime_error("Multiple 'Camera' objects in scene.");
