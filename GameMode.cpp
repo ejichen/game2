@@ -114,6 +114,11 @@ GameMode::GameMode(Client &client_) : client(client_) {
 		ymax += 100;
 		ymin += 100;
 	}
+	// for (int i = 0; i < rod_num; i++){
+	// 	std::cout << i << " " << rod_table[i].first << " " << rod_table[i].second[0] << " "
+	// 	<< rod_table[i].second[1] << " " << rod_table[i].second[2] << " "
+	// 	<< rod_table[i].second[3] << std::endl;
+	// }
 	client.connection.send_raw("h", 1); //send a 'hello' to the server
 }
 
@@ -132,14 +137,6 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	if (evt.type == SDL_KEYDOWN && evt.key.repeat) {
 		return false;
 	}
-
-	// if (evt.type == SDL_MOUSEMOTION) {
-	// 	state.paddle.x = (evt.motion.x - 0.5f * window_size.x) / (0.5f * window_size.x) * Game::FrameWidth;
-	// 	state.paddle.x = std::max(state.paddle.x, -0.5f * Game::FrameWidth + 0.5f * Game::PaddleWidth);
-	// 	state.paddle.x = std::min(state.paddle.x,  0.5f * Game::FrameWidth - 0.5f * Game::PaddleWidth);
-	// 	mouse_slide = evt.type;
-	// 	return true;
-	// }
 
 	if (evt.type == SDL_MOUSEBUTTONDOWN && SDL_BUTTON(SDL_GetMouseState(&cur_x, &cur_y))) {
 		for(int i = 0; i < rod_num; i++){
@@ -167,7 +164,7 @@ void GameMode::update(float elapsed) {
 	// }
 	if(mouse_click && rod_table[state.chaned_index].first == 0){
 		//change the color
-		std::cout << "sending messge: " << state.chaned_index << std::endl;
+		// std::cout << "sending messge: " << state.chaned_index << std::endl;
 		client.connection.send_raw("c", 1);
 		client.connection.send_raw(&state.chaned_index, sizeof(int));
 	}
@@ -178,14 +175,6 @@ void GameMode::update(float elapsed) {
 			std::cerr << "Lost connection to server." << std::endl;
 		} else { assert(event == Connection::OnRecv);
 			while(!(c->recv_buffer.empty())){
-			// if (*(c->recv_buffer.begin()) == 't') {
-			// 	if (c->recv_buffer.size() < 1 + sizeof(float)) {
-			// 		return; //wait for more data
-			// 	} else {
-			// 		memcpy(&state.paddle.x, c->recv_buffer.data() + 1, sizeof(float));
-			// 		c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(float));
-			// 	}
-			// }
 			if (*(c->recv_buffer.begin()) == 'i') {
 				if (c->recv_buffer.size() < 1 + sizeof(int)) {
 					return; //wait for more data
@@ -194,7 +183,11 @@ void GameMode::update(float elapsed) {
 					memcpy(&state.chaned_index, c->recv_buffer.data() + 1 + sizeof(int), sizeof(int));
 					rod_table[state.chaned_index].first = state.chaned_color;
 					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + 2 * sizeof(int));
-					std::cerr << "receive " << state.chaned_color << " " << state.chaned_index << " index from server" << std::endl;
+					std::cerr << "receive " << state.chaned_color << " "
+					<< state.chaned_index << " index from server"
+					<< "\npos: " <<  rod_table[state.chaned_index].second[0] << " "
+					<< rod_table[state.chaned_index].second[1] << " " << rod_table[state.chaned_index].second[2] << " "
+					<< rod_table[state.chaned_index].second[3] << std::endl;
 				}
 			}
 			// c->recv_buffer.clear();
@@ -275,7 +268,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 			// //intialize the color as gray
 			// rod_table.push_back(std::make_pair(2, bbox));
 			int idx = y*board_x + x;
-			// std::cout << "idx: " << idx << std::endl;
+			// std::cout << "drawing idx: " << idx << "color: " << rod_table[idx].first << std::endl;
 			draw_mesh(*rod_meshes[rod_table[idx].first],
 				glm::mat4(
 					0.0f, 0.0f, 1.0f, 0.0f,
@@ -291,7 +284,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 			// std::vector<float> bbox{x+rod_width, y+rod_length, x-rod_width ,y-rod_length};
 			// rod_table.push_back(std::make_pair(1, bbox));
 			int idx = 20+((y-1)*(board_x+1))+x;
-			// std::cout << "idx: " << idx << std::endl;
+			// std::cout << "drawing idx: " << idx << "color: " << rod_table[idx].first << std::endl;
 			draw_mesh(*rod_meshes[rod_table[idx].first],
 				glm::mat4(
 					1.0f, 0.0f, 0.0f, 0.0f,

@@ -20,7 +20,7 @@ I modified the interface choice from using keyboard to using keypad. In this way
 
 Good / Bad / Ugly Code:
 Good: Handling the connection well that both parties could receive the data and send out the data. Built the set for the game.
-Bad: Couldn't get the index of the changed rod right.
+Bad: Still not get the index of the changed rod right and haven't implemented the scoring algorithm.
 Ugly: Kind of hard coded the grid. Calculated the position of the grid based on the length of rods. The size couldn't be changed.
 
 TODO: provide examples of code you wrote from this project that you think is good (elegant, simple, useful), bad (hack-y, brittle, unreadable), and ugly (particularly inelegant). Provide a sentence or two of justification for the examples.
