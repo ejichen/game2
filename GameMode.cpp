@@ -52,7 +52,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
 	//load transform hierarchy:
 	ret->load(data_path("paddle-ball.scene"), [](Scene &s, Scene::Transform *t, std::string const &m){
-		if (t->name == "Camera"){
+		if (t->name == "Paddle"){
 
 
 			Scene::Object *obj = s.new_object(t);
@@ -207,12 +207,13 @@ void GameMode::update(float elapsed) {
 					return; //wait for more data
 				} else {
 					memcpy(&state.chaned_color, c->recv_buffer.data() + 1, sizeof(int));
+					memcpy(&state.chaned_index, c->recv_buffer.data() + 1 + sizeof(int), sizeof(int));
 					rod_table[state.chaned_index].first = state.chaned_color;
-					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(int));
+					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + 2 * sizeof(int));
 					std::cerr << "receive " << state.chaned_color << " " << state.chaned_index << " index from server" << std::endl;
 				}
 			}
-			c->recv_buffer.clear();
+			// c->recv_buffer.clear();
 		}
 	}
 	});

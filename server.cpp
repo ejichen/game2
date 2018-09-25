@@ -62,8 +62,11 @@ int main(int argc, char **argv) {
 								std::cout << "inside the front, sending color " << state.chaned_color << std::endl;
 								server.connections.back().send_raw("i", 1);
 								server.connections.back().send_raw(&state.chaned_color, sizeof(int));
+								server.connections.back().send_raw(&state.chaned_index, sizeof(int));
 								server.connections.front().send_raw("i", 1);
 								server.connections.front().send_raw(&state.chaned_color, sizeof(int));
+								server.connections.front().send_raw(&state.chaned_index, sizeof(int));
+
 							}
 						}
 						else if (c == &server.connections.back()){
@@ -72,8 +75,10 @@ int main(int argc, char **argv) {
 								state.chaned_color = 2;
 								server.connections.back().send_raw("i", 1);
 								server.connections.back().send_raw(&state.chaned_color, sizeof(int));
+								server.connections.back().send_raw(&state.chaned_index, sizeof(int));
 								server.connections.front().send_raw("i", 1);
 								server.connections.front().send_raw(&state.chaned_color, sizeof(int));
+								server.connections.front().send_raw(&state.chaned_index, sizeof(int));
 							}
 						}
 						else{
