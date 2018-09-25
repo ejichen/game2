@@ -1,5 +1,4 @@
 # Game Information
-(Note: fill in this portion with information about your game.)
 
 Title: Seven Segments
 
@@ -20,7 +19,7 @@ Changes From The Design Document:
 I modified the interface choice from using keyboard to using keypad. In this way, it's more intuitive to operate.
 
 Good / Bad / Ugly Code:
-Good: Handling the connection well that both parties could receive the data and send out the data.
+Good: Handling the connection well that both parties could receive the data and send out the data. Built the set for the game.
 Bad: Couldn't get the index of the changed rod right and didn't get rid of the paddle.
 Ugly: Kind of hard coded the grid. Calculated the position of the grid based on the length of rods. The size couldn't be changed.
 
