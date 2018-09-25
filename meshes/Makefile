@@ -16,6 +16,7 @@ all : \
 	$(DIST)/menu.p \
 	$(DIST)/paddle-ball.pnc \
 	$(DIST)/paddle-ball.scene \
+	$(DIST)/sevenSeg.pnc
 
 
 $(DIST)/%.p : %.blend export-meshes.py

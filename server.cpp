@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 					}
 				}
 			}
-		}, 0.01);
+		}, 0.025);
 		//every second or so, dump the current paddle position:
 		static auto then = std::chrono::steady_clock::now();
 		auto now = std::chrono::steady_clock::now();
