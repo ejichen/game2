@@ -8,8 +8,7 @@ Design Document: [Seven Segments](http://graphics.cs.cmu.edu/courses/15-466-f18/
 
 Screen Shot:
 
-![Screen Shot1](game1.png)
-![Screen Shot2](game2.png)
+![Screen Shot1](game3.png)
 How To Play:
 
 Use the mouse to select the gray rod that you would like to change. Try to connect the rods to form a number to get the score.
