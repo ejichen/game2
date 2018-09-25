@@ -43,8 +43,9 @@ Load< GLuint > meshes_for_vertex_color_program(LoadTagDefault, [](){
 	return new GLuint(meshes->make_vao_for_program(vertex_color_program->program));
 });
 
-Scene::Transform *paddle_transform = nullptr;
-Scene::Transform *ball_transform = nullptr;
+// Scene::Transform *paddle_transform = nullptr;
+// Scene::Transform *ball_transform = nullptr;
+Scene::Transform *tile_transform = nullptr;
 Scene::Camera *camera = nullptr;
 
 
@@ -52,7 +53,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
 	//load transform hierarchy:
 	ret->load(data_path("paddle-ball.scene"), [](Scene &s, Scene::Transform *t, std::string const &m){
-		if (t->name == "Paddle"){
+		if (t->name == "Tile"){
 
 
 			Scene::Object *obj = s.new_object(t);
@@ -70,19 +71,19 @@ Load< Scene > scene(LoadTagDefault, [](){
 	});
 
 	//look up paddle and ball transforms:
-	for (Scene::Transform *t = ret->first_transform; t != nullptr; t = t->alloc_next) {
-		if (t->name == "Paddle") {
-			if (paddle_transform) throw std::runtime_error("Multiple 'Paddle' transforms in scene.");
-			paddle_transform = t;
-		}
-		if (t->name == "Ball") {
-			if (ball_transform) throw std::runtime_error("Multiple 'Ball' transforms in scene.");
-			ball_transform = t;
-		}
-
-	}
-	if (!paddle_transform) throw std::runtime_error("No 'Paddle' transform in scene.");
-	if (!ball_transform) throw std::runtime_error("No 'Ball' transform in scene.");
+	// for (Scene::Transform *t = ret->first_transform; t != nullptr; t = t->alloc_next) {
+	// 	if (t->name == "Paddle") {
+	// 		if (paddle_transform) throw std::runtime_error("Multiple 'Paddle' transforms in scene.");
+	// 		paddle_transform = t;
+	// 	}
+	// 	if (t->name == "Ball") {
+	// 		if (ball_transform) throw std::runtime_error("Multiple 'Ball' transforms in scene.");
+	// 		ball_transform = t;
+	// 	}
+	//
+	// }
+	// if (!paddle_transform) throw std::runtime_error("No 'Paddle' transform in scene.");
+	// if (!ball_transform) throw std::runtime_error("No 'Ball' transform in scene.");
 	// look up the camera:
 	for (Scene::Camera *c = ret->first_camera; c != nullptr; c = c->alloc_next) {
 		if (c->transform->name == "Camera") {
