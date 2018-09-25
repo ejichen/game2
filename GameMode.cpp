@@ -43,8 +43,6 @@ Load< GLuint > meshes_for_vertex_color_program(LoadTagDefault, [](){
 	return new GLuint(meshes->make_vao_for_program(vertex_color_program->program));
 });
 
-// Scene::Transform *paddle_transform = nullptr;
-// Scene::Transform *ball_transform = nullptr;
 Scene::Transform *tile_transform = nullptr;
 Scene::Camera *camera = nullptr;
 
