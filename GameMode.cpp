@@ -116,20 +116,10 @@ GameMode::GameMode(Client &client_) : client(client_) {
 	// SDL_GL_GetDrawableSize(window, &drawable_size_w, &drawable_size_h);
 	// std::cout << "window_size:" << window_size_w << " " << window_size_h << "drawable_size: " << drawable_size_w << " "<< drawable_size_h << std::endl;
 	// constructing rod rod_table
-	// rod_color col = Gray;
-	for (uint32_t y = 0; y < board_size.y; ++y) {
-		for (uint32_t x = 0; x < board_size.x; ++x) {
-			//bbox = [xmax, ymax, xmin, ymin]
-			std::vector<float> bbox{x+rod_length, y+rod_width, x-rod_length ,y-rod_width};
-			//intialize the color as gray
-			rod_table.push_back(std::make_pair(2, bbox));
-		}
-	}
-	for (uint32_t y = 1; y < board_size.y; ++y) {
-		for (uint32_t x = 0; x < (board_size.x+1); ++x) {
-			std::vector<float> bbox{x+rod_width, y+rod_length, x-rod_width ,y-rod_length};
-			rod_table.push_back(std::make_pair(1, bbox));
-		}
+	rod_color col = Gray;
+	for (int i = 0; i < rod_num; i++){
+		std::vector<float> bbox(4,0);
+		rod_table.push_back(std::make_pair(col, bbox));
 	}
 
 	client.connection.send_raw("h", 1); //send a 'hello' to the server
@@ -257,32 +247,37 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 		//draw the mesh:
 		glDrawArrays(GL_TRIANGLES, mesh.start, mesh.count);
 	};
-	for(int i = 0; i < rod_num; i++){
-		if(i < board_x*board_y){
-			rod_x = rod_table[i].second[0]-rod_length;
-			rod_y = rod_table[i].second[1]-rod_width;
-			draw_mesh(*rod_meshes[rod_table[i].first],
+	for (uint32_t y = 0; y < board_size.y; ++y) {
+		for (uint32_t x = 0; x < board_size.x; ++x) {
+			// //bbox = [xmax, ymax, xmin, ymin]
+			// std::vector<float> bbox{x+rod_length, y+rod_width, x-rod_length ,y-rod_width};
+			// //intialize the color as gray
+			// rod_table.push_back(std::make_pair(2, bbox));
+			draw_mesh(*rod_meshes[rod_table[y*board_y+x].first],
 				glm::mat4(
 					0.0f, 0.0f, 1.0f, 0.0f,
 					0.0f, 1.0f, 0.0f, 0.0f,
 					-1.0f, 0.0f, 0.0f, 0.0f,
-					rod_x, rod_y, -1.0f, 1.0f
-				)
-			);
-		}
-		else{
-			rod_x = rod_table[i].second[0]-rod_width;
-			rod_y = rod_table[i].second[1]-rod_length;
-			draw_mesh(*rod_meshes[rod_table[i].first],
-				glm::mat4(
-					1.0f, 0.0f, 0.0f, 0.0f,
-					0.0f, 0.0f, -1.0f, 0.0f,
-					0.0f, 1.0f, 0.0f, 0.0f,
-					rod_x, rod_y, -1.0f, 1.0f
+					x+0.5f, y+0.5f, -1.0f, 1.0f
 				)
 			);
 		}
 	}
+	for (uint32_t y = 1; y < board_size.y; ++y) {
+		for (uint32_t x = 0; x < (board_size.x+1); ++x) {
+			// std::vector<float> bbox{x+rod_width, y+rod_length, x-rod_width ,y-rod_length};
+			// rod_table.push_back(std::make_pair(1, bbox));
+			draw_mesh(*rod_meshes[rod_table[20+y*board_y+x].first],
+				glm::mat4(
+					1.0f, 0.0f, 0.0f, 0.0f,
+					0.0f, 0.0f, -1.0f, 0.0f,
+					0.0f, 1.0f, 0.0f, 0.0f,
+					x+0.5f, y+0.5f, -1.0f, 1.0f
+				)
+			);
+		}
+	}
+
 	scene->draw(camera);
 	GL_ERRORS();
 }
