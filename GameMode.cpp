@@ -45,9 +45,6 @@ Load< GLuint > meshes_for_vertex_color_program(LoadTagDefault, [](){
 
 Scene::Transform *paddle_transform = nullptr;
 Scene::Transform *ball_transform = nullptr;
-Scene::Transform *rodRed_transform = nullptr;
-Scene::Transform *rodBlue_transform = nullptr;
-Scene::Transform *rodGray_transform = nullptr;
 Scene::Camera *camera = nullptr;
 
 
@@ -55,17 +52,21 @@ Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
 	//load transform hierarchy:
 	ret->load(data_path("paddle-ball.scene"), [](Scene &s, Scene::Transform *t, std::string const &m){
-		Scene::Object *obj = s.new_object(t);
+		if (t->name == "Camera"){
 
-		obj->program = vertex_color_program->program;
-		obj->program_mvp_mat4  = vertex_color_program->object_to_clip_mat4;
-		obj->program_mv_mat4x3 = vertex_color_program->object_to_light_mat4x3;
-		obj->program_itmv_mat3 = vertex_color_program->normal_to_light_mat3;
 
-		MeshBuffer::Mesh const &mesh = meshes->lookup(m);
-		obj->vao = *meshes_for_vertex_color_program;
-		obj->start = mesh.start;
-		obj->count = mesh.count;
+			Scene::Object *obj = s.new_object(t);
+
+			obj->program = vertex_color_program->program;
+			obj->program_mvp_mat4  = vertex_color_program->object_to_clip_mat4;
+			obj->program_mv_mat4x3 = vertex_color_program->object_to_light_mat4x3;
+			obj->program_itmv_mat3 = vertex_color_program->normal_to_light_mat3;
+
+			MeshBuffer::Mesh const &mesh = meshes->lookup(m);
+			obj->vao = *meshes_for_vertex_color_program;
+			obj->start = mesh.start;
+			obj->count = mesh.count;
+		}
 	});
 
 	//look up paddle and ball transforms:
@@ -78,25 +79,11 @@ Load< Scene > scene(LoadTagDefault, [](){
 			if (ball_transform) throw std::runtime_error("Multiple 'Ball' transforms in scene.");
 			ball_transform = t;
 		}
-		if (t->name == "RodRed") {
-			if (rodRed_transform) throw std::runtime_error("Multiple 'RodRed' transforms in scene.");
-			rodRed_transform = t;
-		}
-		if (t->name == "RodBlue") {
-			if (rodBlue_transform) throw std::runtime_error("Multiple 'RodBlue' transforms in scene.");
-			rodBlue_transform = t;
-		}
-		if (t->name == "RodGray") {
-			if (rodGray_transform) throw std::runtime_error("Multiple 'RodGray' transforms in scene.");
-			rodGray_transform = t;
-		}
+
 	}
 	if (!paddle_transform) throw std::runtime_error("No 'Paddle' transform in scene.");
 	if (!ball_transform) throw std::runtime_error("No 'Ball' transform in scene.");
-	if (!rodRed_transform) throw std::runtime_error("No 'RodRed' transform in scene.");
-	if (!rodBlue_transform) throw std::runtime_error("No 'RodBlue' transform in scene.");
-	if (!rodGray_transform) throw std::runtime_error("No 'RodGray' transform in scene.");
-	//look up the camera:
+	// look up the camera:
 	for (Scene::Camera *c = ret->first_camera; c != nullptr; c = c->alloc_next) {
 		if (c->transform->name == "Camera") {
 			if (camera) throw std::runtime_error("Multiple 'Camera' objects in scene.");
@@ -143,13 +130,7 @@ GameMode::GameMode(Client &client_) : client(client_) {
 		ymax += 100;
 		ymin += 100;
 	}
-	for (int i = 0; i < rod_num; i++){
-		std::cout << "table: " << rod_table[i].first << " " << rod_table[i].second[0]
-		<< " " << rod_table[i].second[1] << " " << rod_table[i].second[2] << " " << rod_table[i].second[3] << std::endl;
-	}
-
 	client.connection.send_raw("h", 1); //send a 'hello' to the server
-
 }
 
 GameMode::~GameMode() {
@@ -168,13 +149,13 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		return false;
 	}
 
-	if (evt.type == SDL_MOUSEMOTION) {
-		state.paddle.x = (evt.motion.x - 0.5f * window_size.x) / (0.5f * window_size.x) * Game::FrameWidth;
-		state.paddle.x = std::max(state.paddle.x, -0.5f * Game::FrameWidth + 0.5f * Game::PaddleWidth);
-		state.paddle.x = std::min(state.paddle.x,  0.5f * Game::FrameWidth - 0.5f * Game::PaddleWidth);
-		mouse_slide = evt.type;
-		return true;
-	}
+	// if (evt.type == SDL_MOUSEMOTION) {
+	// 	state.paddle.x = (evt.motion.x - 0.5f * window_size.x) / (0.5f * window_size.x) * Game::FrameWidth;
+	// 	state.paddle.x = std::max(state.paddle.x, -0.5f * Game::FrameWidth + 0.5f * Game::PaddleWidth);
+	// 	state.paddle.x = std::min(state.paddle.x,  0.5f * Game::FrameWidth - 0.5f * Game::PaddleWidth);
+	// 	mouse_slide = evt.type;
+	// 	return true;
+	// }
 
 	if (evt.type == SDL_MOUSEBUTTONDOWN && SDL_BUTTON(SDL_GetMouseState(&cur_x, &cur_y))) {
 		for(int i = 0; i < rod_num; i++){
@@ -195,13 +176,14 @@ void GameMode::update(float elapsed) {
 	state.update(elapsed);
 
 	// if (client.connection) {
-	if (mouse_slide) {
-		//send game state to server:
-		client.connection.send_raw("s", 1);
-		client.connection.send_raw(&state.paddle.x, sizeof(float));
-	}
-	if(mouse_click){
+	// if (mouse_slide) {
+	// 	//send game state to server:
+	// 	client.connection.send_raw("s", 1);
+	// 	client.connection.send_raw(&state.paddle.x, sizeof(float));
+	// }
+	if(mouse_click && rod_table[state.chaned_index].first == 0){
 		//change the color
+		std::cout << "sending messge: " << state.chaned_index << std::endl;
 		client.connection.send_raw("c", 1);
 		client.connection.send_raw(&state.chaned_index, sizeof(int));
 	}
@@ -211,40 +193,42 @@ void GameMode::update(float elapsed) {
 		} else if (event == Connection::OnClose) {
 			std::cerr << "Lost connection to server." << std::endl;
 		} else { assert(event == Connection::OnRecv);
-			if (*(c->recv_buffer.begin()) == 't') {
-				if (c->recv_buffer.size() < 1 + sizeof(float)) {
-					return; //wait for more data
-				} else {
-					memcpy(&state.paddle.x, c->recv_buffer.data() + 1, sizeof(float));
-					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(float));
-				}
-			}
+			while(!(c->recv_buffer.empty())){
+			// if (*(c->recv_buffer.begin()) == 't') {
+			// 	if (c->recv_buffer.size() < 1 + sizeof(float)) {
+			// 		return; //wait for more data
+			// 	} else {
+			// 		memcpy(&state.paddle.x, c->recv_buffer.data() + 1, sizeof(float));
+			// 		c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(float));
+			// 	}
+			// }
 			if (*(c->recv_buffer.begin()) == 'i') {
 				if (c->recv_buffer.size() < 1 + sizeof(int)) {
 					return; //wait for more data
 				} else {
-					memcpy(&state.rod_meshes[state.chaned_index], c->recv_buffer.data() + 1, sizeof(int));
-					rod_table[state.chaned_index].first = state.rod_meshes[state.chaned_index];
+					memcpy(&state.chaned_color, c->recv_buffer.data() + 1, sizeof(int));
+					rod_table[state.chaned_index].first = state.chaned_color;
 					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(int));
-					std::cerr << "receive " << rod_table[state.chaned_index].first << " " << state.rod_meshes[state.chaned_index] << " index from server" << std::endl;
+					std::cerr << "receive " << state.chaned_color << " " << state.chaned_index << " index from server" << std::endl;
 				}
 			}
 			c->recv_buffer.clear();
 		}
+	}
 	});
 
-	//copy game state to scene positions:
-	ball_transform->position.x = state.ball.x;
-	ball_transform->position.y = state.ball.y;
-
-	paddle_transform->position.x = state.paddle.x;
-	paddle_transform->position.y = state.paddle.y;
+	// //copy game state to scene positions:
+	// ball_transform->position.x = state.ball.x;
+	// ball_transform->position.y = state.ball.y;
+	//
+	// paddle_transform->position.x = state.paddle.x;
+	// paddle_transform->position.y = state.paddle.y;
 }
 
 void GameMode::draw(glm::uvec2 const &drawable_size) {
 	camera->aspect = drawable_size.x / float(drawable_size.y);
 
-	glClearColor(0.25f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.20f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//set up basic OpenGL state:
@@ -305,7 +289,9 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 			// std::vector<float> bbox{x+rod_length, y+rod_width, x-rod_length ,y-rod_width};
 			// //intialize the color as gray
 			// rod_table.push_back(std::make_pair(2, bbox));
-			draw_mesh(*rod_meshes[rod_table[y*board_y+x].first],
+			int idx = y*board_x + x;
+			// std::cout << "idx: " << idx << std::endl;
+			draw_mesh(*rod_meshes[rod_table[idx].first],
 				glm::mat4(
 					0.0f, 0.0f, 1.0f, 0.0f,
 					0.0f, 1.0f, 0.0f, 0.0f,
@@ -319,7 +305,9 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 		for (uint32_t x = 0; x < (board_size.x+1); ++x) {
 			// std::vector<float> bbox{x+rod_width, y+rod_length, x-rod_width ,y-rod_length};
 			// rod_table.push_back(std::make_pair(1, bbox));
-			draw_mesh(*rod_meshes[rod_table[20+y*board_y+x].first],
+			int idx = 20+((y-1)*(board_x+1))+x;
+			// std::cout << "idx: " << idx << std::endl;
+			draw_mesh(*rod_meshes[rod_table[idx].first],
 				glm::mat4(
 					1.0f, 0.0f, 0.0f, 0.0f,
 					0.0f, 0.0f, -1.0f, 0.0f,
