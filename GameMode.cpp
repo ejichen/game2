@@ -63,10 +63,10 @@ Load< Scene > scene(LoadTagDefault, [](){
 			obj->program_mv_mat4x3 = vertex_color_program->object_to_light_mat4x3;
 			obj->program_itmv_mat3 = vertex_color_program->normal_to_light_mat3;
 
-			// MeshBuffer::Mesh const &mesh = meshes->lookup(m);
-			// obj->vao = *meshes_for_vertex_color_program;
-			// obj->start = mesh.start;
-			// obj->count = mesh.count;
+			MeshBuffer::Mesh const &mesh = meshes->lookup(m);
+			obj->vao = *meshes_for_vertex_color_program;
+			obj->start = mesh.start;
+			obj->count = mesh.count;
 		}
 	});
 
