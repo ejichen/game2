@@ -43,7 +43,7 @@ struct GameMode : public Mode {
 	float rod_length = 0.42;
 	float rod_width = 0.042;
 	//hard code the table for rods, including the color and the bounding box
-	std::vector<std::pair<int, std::vector<float>>> rod_table;
+	std::vector<std::pair<int, std::vector<int>>> rod_table;
 
 	//------ networking ------
 	Client &client; //client object; manages connection to server.

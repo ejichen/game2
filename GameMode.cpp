@@ -110,16 +110,32 @@ Load< Scene > scene(LoadTagDefault, [](){
 GameMode::GameMode(Client &client_) : client(client_) {
 	board_meshes.reserve(board_size.x * board_size.y);
 	rod_table.reserve(rod_num);
-	// int window_size_w, window_size_h;
-	// SDL_GetWindowSize(window, &window_size_w, &window_size_h);
-	// int drawable_size_w, drawable_size_h;
-	// SDL_GL_GetDrawableSize(window, &drawable_size_w, &drawable_size_h);
-	// std::cout << "window_size:" << window_size_w << " " << window_size_h << "drawable_size: " << drawable_size_w << " "<< drawable_size_h << std::endl;
-	// constructing rod rod_table
 	rod_color col = Gray;
-	for (int i = 0; i < rod_num; i++){
-		std::vector<float> bbox(4,0);
-		rod_table.push_back(std::make_pair(col, bbox));
+	int xmax = 160; int xmin = 80; int ymax = 60; int ymin = 40;
+	for (uint32_t y = 0; y < board_size.y; ++y) {
+		for (uint32_t x = 0; x < board_size.x; ++x) {
+			//bbox = [xmax, ymax, xmin, ymin]
+			std::vector<int> bbox{xmax, ymax, xmin ,ymin};
+			//intialize the color as gray
+			rod_table.push_back(std::make_pair(col, bbox));
+			xmax += 100;
+			xmin += 100;
+			ymax += 100;
+			ymin += 100;
+
+		}
+	}
+
+	xmax = 80; xmin = 60; ymax = 140; ymin = 60;
+	for (uint32_t y = 1; y < board_size.y; ++y) {
+		for (uint32_t x = 0; x < (board_size.x+1); ++x) {
+			std::vector<int> bbox{xmax, ymax, xmin ,ymin};
+			rod_table.push_back(std::make_pair(col, bbox));
+			xmax += 100;
+			xmin += 100;
+			ymax += 100;
+			ymin += 100;
+		}
 	}
 
 	client.connection.send_raw("h", 1); //send a 'hello' to the server
@@ -244,6 +260,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 			glm::mat3 normal_to_world = glm::inverse(glm::transpose(glm::mat3(object_to_world)));
 			glUniformMatrix3fv(vertex_color_program->normal_to_light_mat3, 1, GL_FALSE, glm::value_ptr(normal_to_world));
 		}
+
 		//draw the mesh:
 		glDrawArrays(GL_TRIANGLES, mesh.start, mesh.count);
 	};
@@ -272,11 +289,14 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 					1.0f, 0.0f, 0.0f, 0.0f,
 					0.0f, 0.0f, -1.0f, 0.0f,
 					0.0f, 1.0f, 0.0f, 0.0f,
-					x+0.5f, y+0.5f, -1.0f, 1.0f
+					x, y, -1.0f, 1.0f
 				)
 			);
 		}
 	}
+	// for (int i = 0; i < rod_num; i++){
+	// 	rod_table[i].second = std::vector<int>{};
+	// }
 
 	scene->draw(camera);
 	GL_ERRORS();
