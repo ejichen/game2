@@ -1,25 +1,28 @@
 # Game Information
 (Note: fill in this portion with information about your game.)
 
-Title: (TODO: your game's title)
+Title: Seven Segments
 
-Author: (TODO: your name)
+Author: I-Chen Jwo
 
-Design Document: [TODO: name of design document](TODO: link to design document)
+Design Document: [Seven Segments](http://graphics.cs.cmu.edu/courses/15-466-f18/game2-designs/ijwo/)
 
 Screen Shot:
 
-![Screen Shot](screenshot.png)
-
+![Screen Shot1](game1.png)
+![Screen Shot2](game3.png)
 How To Play:
 
-TODO: describe the controls and (if needed) goals/strategy.
+Use the mouse to select the gray rod that you would like to change. Try to connect the rods to form a number to get the score.
 
 Changes From The Design Document:
 
-TODO: what did you need to add/remove/modify from the original design? Why?
+I modified the interface choice from using keyboard to using keypad. In this way, it's more intuitive to operate.
 
 Good / Bad / Ugly Code:
+Good: Handling the connection well that both parties could receive the data and send out the data.
+Bad: Couldn't get the index of the changed rod right and didn't get rid of the paddle.
+Ugly: Kind of hard coded the grid. Calculated the position of the grid based on the length of rods. The size couldn't be changed.
 
 TODO: provide examples of code you wrote from this project that you think is good (elegant, simple, useful), bad (hack-y, brittle, unreadable), and ugly (particularly inelegant). Provide a sentence or two of justification for the examples.
 
