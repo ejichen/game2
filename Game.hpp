@@ -10,6 +10,8 @@ struct Game {
   // store values 0 1 2 indicating gray, red, blue
 	int rod_num = 38;
 	std::vector<int> rod_meshes = std::vector<int>(rod_num, 0);
+	int chaned_index = 0;
+	int chaned_color = 0;
 	void update(float time);
 
 	static constexpr const float FrameWidth = 10.0f;

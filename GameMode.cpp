@@ -120,10 +120,13 @@ GameMode::GameMode(Client &client_) : client(client_) {
 			rod_table.push_back(std::make_pair(col, bbox));
 			xmax += 100;
 			xmin += 100;
-			ymax += 100;
-			ymin += 100;
+
 
 		}
+		xmax = 160;
+		xmin = 80;
+		ymax += 100;
+		ymin += 100;
 	}
 
 	xmax = 80; xmin = 60; ymax = 140; ymin = 60;
@@ -133,9 +136,16 @@ GameMode::GameMode(Client &client_) : client(client_) {
 			rod_table.push_back(std::make_pair(col, bbox));
 			xmax += 100;
 			xmin += 100;
-			ymax += 100;
-			ymin += 100;
+
 		}
+		xmax = 80;
+		xmin = 60;
+		ymax += 100;
+		ymin += 100;
+	}
+	for (int i = 0; i < rod_num; i++){
+		std::cout << "table: " << rod_table[i].first << " " << rod_table[i].second[0]
+		<< " " << rod_table[i].second[1] << " " << rod_table[i].second[2] << " " << rod_table[i].second[3] << std::endl;
 	}
 
 	client.connection.send_raw("h", 1); //send a 'hello' to the server
@@ -145,8 +155,15 @@ GameMode::GameMode(Client &client_) : client(client_) {
 GameMode::~GameMode() {
 }
 
+
+bool GameMode::got_cliked(std::vector<int> bbox, int x_cursor, int y_cursor){
+	return bbox[0] - x_cursor >= 0 && bbox[1] - y_cursor >= 0 && bbox[2] - x_cursor <= 0 && bbox[3] - y_cursor <= 0;
+}
+
+
 bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
 	//ignore any keys that are the result of automatic key repeat:
+
 	if (evt.type == SDL_KEYDOWN && evt.key.repeat) {
 		return false;
 	}
@@ -155,15 +172,20 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		state.paddle.x = (evt.motion.x - 0.5f * window_size.x) / (0.5f * window_size.x) * Game::FrameWidth;
 		state.paddle.x = std::max(state.paddle.x, -0.5f * Game::FrameWidth + 0.5f * Game::PaddleWidth);
 		state.paddle.x = std::min(state.paddle.x,  0.5f * Game::FrameWidth - 0.5f * Game::PaddleWidth);
-		mouse_slide = true;
+		mouse_slide = evt.type;
 		return true;
 	}
-	int cur_x, cur_y;
-	if (evt.type == SDL_MOUSEBUTTONDOWN && SDL_BUTTON(SDL_GetMouseState(&cur_x, &cur_y)) == SDL_BUTTON_LEFT) {
-		float real_x = (cur_x - 0.5f * window_size.x) / (0.5f * window_size.x) * Game::FrameWidth;
-		float real_y = (cur_y - 0.5f * window_size.y) / (0.5f * window_size.y) * Game::FrameHeight;
-		std::cout << "mouse cliked!, position: " << real_x << " " << real_y << " " << cur_x << " " << cur_y << std::endl;
-		return true;
+
+	if (evt.type == SDL_MOUSEBUTTONDOWN && SDL_BUTTON(SDL_GetMouseState(&cur_x, &cur_y))) {
+		for(int i = 0; i < rod_num; i++){
+			if(got_cliked(rod_table[i].second, cur_x, cur_y)) {
+				std::cout << "click: " << i << " at  " << cur_x << " " << cur_y << std::endl;
+				state.chaned_index = i;
+				mouse_click = evt.type;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	return false;
@@ -178,14 +200,18 @@ void GameMode::update(float elapsed) {
 		client.connection.send_raw("s", 1);
 		client.connection.send_raw(&state.paddle.x, sizeof(float));
 	}
-
+	if(mouse_click){
+		//change the color
+		client.connection.send_raw("c", 1);
+		client.connection.send_raw(&state.chaned_index, sizeof(int));
+	}
 	client.poll([&](Connection *c, Connection::Event event){
 		if (event == Connection::OnOpen) {
 			//probably won't get this.
 		} else if (event == Connection::OnClose) {
 			std::cerr << "Lost connection to server." << std::endl;
 		} else { assert(event == Connection::OnRecv);
-			if (c->recv_buffer[0] == 't') {
+			if (*(c->recv_buffer.begin()) == 't') {
 				if (c->recv_buffer.size() < 1 + sizeof(float)) {
 					return; //wait for more data
 				} else {
@@ -193,7 +219,16 @@ void GameMode::update(float elapsed) {
 					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(float));
 				}
 			}
-			// std::cerr << "Ignoring " << c->recv_buffer.size() << " bytes from server." << std::endl;
+			if (*(c->recv_buffer.begin()) == 'i') {
+				if (c->recv_buffer.size() < 1 + sizeof(int)) {
+					return; //wait for more data
+				} else {
+					memcpy(&state.rod_meshes[state.chaned_index], c->recv_buffer.data() + 1, sizeof(int));
+					rod_table[state.chaned_index].first = state.rod_meshes[state.chaned_index];
+					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(int));
+					std::cerr << "receive " << rod_table[state.chaned_index].first << " " << state.rod_meshes[state.chaned_index] << " index from server" << std::endl;
+				}
+			}
 			c->recv_buffer.clear();
 		}
 	});

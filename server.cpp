@@ -20,10 +20,10 @@ int main(int argc, char **argv) {
 			if (evt == Connection::OnOpen) {
 			} else if (evt == Connection::OnClose) {
 			} else { assert(evt == Connection::OnRecv);
-				if (c->recv_buffer[0] == 'h') {
+				if (*(c->recv_buffer.begin()) == 'h') {
 					c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1);
 					std::cout << c << ": Got hello." << std::endl;
-				} else if (c->recv_buffer[0] == 's') {
+				} else if (*(c->recv_buffer.begin()) == 's') {
 					if (c->recv_buffer.size() < 1 + sizeof(float)) {
 						return; //wait for more data
 					} else {
@@ -45,8 +45,44 @@ int main(int argc, char **argv) {
 						c->recv_buffer.clear();
 					}
 				}
+				else if (*(c->recv_buffer.begin()) == 'c') {
+					// change color, update at local and send a new color to both company
+					// default the front is red and the back is blue
+					if (c->recv_buffer.size() < 1 + sizeof(int)) {
+						return; //wait for more data
+					} else {
+						memcpy(&state.chaned_index, c->recv_buffer.data() + 1, sizeof(int));
+						if(c == &server.connections.front()){
+							if (state.rod_meshes[state.chaned_index] == 0){
+								state.rod_meshes[state.chaned_index] = 1;
+								state.chaned_color = 1;
+								server.connections.back().send_raw("i", 1);
+								server.connections.back().send_raw(&state.chaned_color, sizeof(int));
+								server.connections.front().send_raw("i", 1);
+								server.connections.front().send_raw(&state.chaned_color, sizeof(int));
+							}
+						}
+						else if (c == &server.connections.back()){
+							if (state.rod_meshes[state.chaned_index] == 0){
+								state.rod_meshes[state.chaned_index] = 2;
+								state.chaned_color = 2;
+								server.connections.back().send_raw("i", 1);
+								server.connections.back().send_raw(&state.chaned_color, sizeof(int));
+								server.connections.front().send_raw("i", 1);
+								server.connections.front().send_raw(&state.chaned_color, sizeof(int));
+							}
+						}
+						else{
+							std::cout << "someone else send the message, weird" << std::endl;
+						}
+
+						c->recv_buffer.erase(c->recv_buffer.begin(), c->recv_buffer.begin() + 1 + sizeof(int));
+						c->recv_buffer.clear();
+
+					}
+				}
 			}
-		}, 0.025);
+		}, 0.01);
 		//every second or so, dump the current paddle position:
 		static auto then = std::chrono::steady_clock::now();
 		auto now = std::chrono::steady_clock::now();

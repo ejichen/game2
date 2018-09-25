@@ -33,17 +33,19 @@ struct GameMode : public Mode {
 	//------- game state -------
 	Game state;
 	bool mouse_slide = false;
+	bool mouse_click = false;
 	int board_x = 5;
 	int board_y = 4;
-	int rod_x, rod_y;
+	int cur_x, cur_y;
 	glm::uvec2 board_size = glm::uvec2(board_x, board_y);
 	std::vector< MeshBuffer::Mesh const * > board_meshes;
 	enum rod_color{Gray, Red, Blue};
 	int rod_num = (board_x+1) * (board_y-1) + board_x * board_y;
-	float rod_length = 0.42;
-	float rod_width = 0.042;
 	//hard code the table for rods, including the color and the bounding box
 	std::vector<std::pair<int, std::vector<int>>> rod_table;
+	bool got_cliked(std::vector<int> bbox, int x_cursor, int y_cursor);
+
+
 
 	//------ networking ------
 	Client &client; //client object; manages connection to server.
